@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Motors Admin Utility</title>
+    <link rel="stylesheet" href="style1.css">
+    <style>
+        /* Styles specific to AU.html layout */
+        .admin-utility-section { padding: 40px 20px; text-align: center; }
+        .car-card-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 20px; }
+        .car-card { border: 1px solid var(--gold); padding: 15px; border-radius: 8px; width: 300px; text-align: center; }
+        .car-card img { width: 100%; height: auto; border-radius: 4px; margin-bottom: 10px; }
+        .car-card p { font-size: 1.2rem; font-weight: 700; color: var(--off-white); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Admin Control Panel</h1>
+        <h3>Manage Inventory and Client Inquiries</h3>
+    </header>
+
+    <main class="container">
+        <section class="admin-utility-section">
+            <h2>Inventory Management</h2>
+            <div id="car-list" class="car-card-container">
+                <div class="car-card">
+                    <img src="https://via.placeholder.com/300x180/1a1a1a/D4AF37?text=Car+A+Image" alt="Car A">
+                    <h3>The Apex Phantom</h3>
+                    <p>$350,000</p>
+                </div>
+                <div class="car-card">
+                    <img src="https://via.placeholder.com/300x180/1a1a1a/D4AF37?text=Car+B+Image" alt="Car B">
+                    <h3>The Zenith Racer</h3>
+                    <p>$500,000</p>
+                </div>
+                </div>
+        </section>
+
+        <section class="admin-utility-section">
+            <h1>Contact Inquiry Management</h1>
+            <h3 id="inquiry-admin-status">Checking Admin Access...</h3>
+            
+            <button id="viewInquiriesBtn" style="display:none; padding: 12px 25px; background: var(--gold); color: var(--black); border: none; cursor: pointer; font-weight: bold; text-transform: uppercase;">View All Contact Inquiries</button>
+            
+            <div id="inquiries-display" style="margin-top: 20px;">
+                </div>
+            
+            <p id="inquiry-message-area" style="padding: 10px; margin-top: 10px;"></p>
+        </section>
+        
+    </main>
+
+    <footer>
+        <hr>
+        <p>Admin Portal - Unauthorized Access Prohibited.</p>
+    </footer>
+
+    <script>
+        const role = localStorage.getItem("role");  
+        const isAdmin = (role === "admin");
+        const SERVER_URL = 'http://localhost:3000'; 
+
+        // --- INVENTORY EDITING LOGIC ---
+        function loadAdminEdits() {
+            const savedEdits = JSON.parse(localStorage.getItem("carEdits") || "{}");
+            document.querySelectorAll(".car-card").forEach(card => {
+                const carName = card.querySelector("h3").innerText;
+                if (savedEdits[carName]) {
+                    if (savedEdits[carName].img) card.querySelector("img").src = savedEdits[carName].img;
+                    if (savedEdits[carName].price) card.querySelector("p").innerText = savedEdits[carName].price;
+                }
+            });
+        }
+
+        window.onload = function() {
+            loadAdminEdits();
+
+            if (isAdmin) {
+                document.querySelectorAll(".car-card").forEach(card => {
+                    const editBtn = document.createElement("button");
+                    editBtn.innerText = "Edit";
+                    editBtn.style.cssText = "margin-top:5px; background:var(--dark-grey); color:var(--off-white); border:none; padding:5px 10px; cursor:pointer; border-radius:5px;";
+                    card.appendChild(editBtn);
+
+                    editBtn.addEventListener("click", () => {
+                        const img = card.querySelector("img");
+                        const priceTag = card.querySelector("p");
+                        const carName = card.querySelector("h3").innerText;
+
+                        const fileInput = document.createElement("input");
+                        fileInput.type = "file";
+                        fileInput.accept = "image/*";
+                        fileInput.onchange = (e) => {
+                            const reader = new FileReader();
+                            reader.onload = function(ev) {
+                                img.src = ev.target.result;
+
+                                // Save to localStorage
+                                const edits = JSON.parse(localStorage.getItem("carEdits") || "{}");
+                                edits[carName] = edits[carName] || {};
+                                edits[carName].img = ev.target.result;
+                                localStorage.setItem("carEdits", JSON.stringify(edits));
+                            };
+                            fileInput.readAsDataURL(e.target.files[0]);
+                        };
+                        fileInput.click();
+
+                        const newPrice = prompt("Enter new price:", priceTag.innerText);
+                        if (newPrice) {
+                            priceTag.innerText = newPrice;
+
+                            // Save price to localStorage
+                            const edits = JSON.parse(localStorage.getItem("carEdits") || "{}");
+                            edits[carName] = edits[carName] || {};
+                            edits[carName].price = newPrice;
+                            localStorage.setItem("carEdits", JSON.stringify(edits));
+                        }
+                    });
+                });
+            }
+            
+            // Start the Inquiry Viewer logic after the initial load
+            initInquiryViewer();
+        };
+
+        // =========================================================
+        // NEW: Contact Inquiry Viewing Logic
+        // =========================================================
+        const inquiryAdminStatus = document.getElementById("inquiry-admin-status");
+        const viewBtn = document.getElementById("viewInquiriesBtn");
+        const displayArea = document.getElementById("inquiries-display");
+        const messageArea = document.getElementById("inquiry-message-area");
+        
+        function initInquiryViewer() {
+            if (isAdmin) {
+                inquiryAdminStatus.textContent = "Contact Inquiries: Ready to fetch.";
+                viewBtn.style.display = "block";
+                
+                viewBtn.addEventListener("click", fetchInquiries);
+            } else {
+                inquiryAdminStatus.textContent = "Contact Inquiries: Restricted Access. Please Log in as Admin.";
+                viewBtn.style.display = "none";
+                messageArea.style.display = 'none';
+            }
+        }
+        
+        async function fetchInquiries() {
+            messageArea.style.display = "block";
+            messageArea.className = 'alert-info';
+            messageArea.textContent = "Fetching contact data...";
+            viewBtn.disabled = true;
+
+            try {
+                // Calls the new Admin API endpoint
+                const response = await fetch(`${SERVER_URL}/api/inquiries`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const inquiries = await response.json();
+                
+                if (inquiries.length === 0) {
+                    displayArea.innerHTML = '<p class="alert-info">No inquiries found in the database.</p>';
+                    messageArea.textContent = "Successfully loaded 0 inquiries.";
+                } else {
+                    renderInquiriesTable(inquiries);
+                    messageArea.textContent = `Successfully loaded ${inquiries.length} inquiries.`;
+                }
+            } catch (error) {
+                console.error("Error fetching inquiries:", error);
+                messageArea.className = 'alert-error';
+                messageArea.textContent = 'Error fetching data. Check server connection (http://localhost:3000).';
+            } finally {
+                viewBtn.disabled = false;
+            }
+        }
+
+        function renderInquiriesTable(inquiries) {
+            let tableHTML = `<table class="inquiry-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Interest</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            inquiries.forEach(inquiry => {
+                const date = new Date(inquiry.submittedAt).toLocaleString();
+                tableHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${inquiry.fullName}</td>
+                        <td>${inquiry.email}</td>
+                        <td>${inquiry.phone}</td>
+                        <td>${inquiry.interest}</td>
+                        <td>${inquiry.message}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `</tbody></table>`;
+            displayArea.innerHTML = tableHTML;
+        }
+    </script>
+</body>
+</html>

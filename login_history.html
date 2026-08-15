@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Entry Summary</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #000; color: #fff; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: #111; padding: 20px; border-radius: 10px; }
+        h1 { color: #FFD700; text-align: center; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #333; text-align: left; }
+        th { background-color: #333; color: #FFD700; }
+        tr:hover { background-color: #222; }
+        .role-admin { color: #FFD700; font-weight: bold; }
+        .role-user { color: #00ff88; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>User and Admin Login History Summary</h1>
+        <table id="login-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Total Logins (How many times)</th>
+                    <th>Last Login At (Which time)</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+        <p id="loading-status">Loading login data...</p>
+    </div>
+
+    <script>
+        async function fetchLoginSummary() {
+            const tableBody = document.querySelector('#login-table tbody');
+            const status = document.getElementById('loading-status');
+            
+            tableBody.innerHTML = '';
+            status.textContent = 'Loading login data...';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/logins/summary');
+                const summary = await response.json();
+
+                if (summary.length === 0) {
+                    status.textContent = 'No login entries found in the database.';
+                    return;
+                }
+
+                summary.forEach(entry => {
+                    const row = tableBody.insertRow();
+                    row.insertCell().textContent = entry.username;
+                    
+                    const roleCell = row.insertCell();
+                    roleCell.textContent = entry.role.toUpperCase();
+                    roleCell.classList.add(entry.role === 'admin' ? 'role-admin' : 'role-user');
+
+                    row.insertCell().textContent = entry.loginCount;
+                    
+                    // Format the date/time
+                    row.insertCell().textContent = new Date(entry.lastLoginAt).toLocaleString(); 
+                });
+
+                status.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error fetching login summary:', error);
+                status.textContent = 'Failed to fetch data. Ensure the Node.js server is running and connected to MongoDB.';
+            }
+        }
+
+        fetchLoginSummary();
+    </script>
+</body>
+</html>

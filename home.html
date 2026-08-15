@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Royal Car - Panels</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Add a minimal style for the new button */
+    .admin-button {
+      /* *** IMPORTANT CHANGE: display: none; has been removed. ***
+         The button is now visible by default for testing location.
+      */
+      padding: 8px 15px; 
+      border: none;
+      background-color: #e74c3c; /* Admin/warning color */
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: none; /* Changed to 'none' to hide the button by default from all users */
+      transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
+    }
+    .admin-button:hover {
+      background-color: #c0392b;
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+    }
+    .admin-button:active {
+      transform: scale(0.98);
+    }
+    /* Necessary for the header elements to align */
+    .header .right {
+      display: flex;
+      align-items: center;
+    }
+    
+    /* Styles for side panels/slides */
+    .slide-panel {
+      position: fixed;
+      top: 0;
+      right: -300px; /* Hidden off-screen */
+      width: 300px;
+      height: 100%;
+      background-color: #333;
+      color: white;
+      padding: 20px;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+      transition: right 0.3s;
+      z-index: 1000;
+    }
+    .slide-panel.slide-open {
+      right: 0; /* Slide in */
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 999;
+    }
+    .overlay.show {
+      display: block;
+    }
+    /* Custom Alert Style (used instead of forbidden window.alert) */
+    #customAlert {
+        position: fixed; 
+        top: 20px; 
+        right: 20px; 
+        background: #3498db; 
+        color: white; 
+        padding: 15px 25px; 
+        border-radius: 8px; 
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+        z-index: 2000; 
+        opacity: 0; 
+        transition: opacity 0.5s ease-in-out; 
+        max-width: 300px; 
+        font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+    <div class="header">
+    <div class="left">
+      <div class="menu-icon" onclick="toggleSlide('menu')">&#9776;</div>
+      <a href="home.html" style="display: flex; align-items: center;">
+        <img src="image/logo.jpg" alt="Logo" class="logo-img">
+        <div class="brand">
+          <div class="brand-name">ROYAL CAR</div>
+          <div class="tagline">Your next adventure starts with us</div>
+        </div>
+      </a>
+    </div>
+
+    <div class="center">
+      <div class="search-box">
+        <select><option>All</option></select>
+        <input type="text" placeholder="Search for a Car" />
+        <button><i class="fas fa-microphone"></i></button>
+        <div id="suggestions-box"></div>
+      </div>
+    </div>
+
+    <div class="right">
+      <img src="image/location.jpg" alt="Location" class="image-icon" onclick="scrollToNearbyCars()" />
+      
+      <a href="contact.html">
+        <img src="image/notification.jpg" alt="Notification" class="image-icon" />
+      </a>
+      
+      </div>
+  </div>
+
+  <div style="text-align: center; margin: 15px 0;">
+    <button id="adminBookingButton" class="admin-button">
+      <i class="fas fa-list-check"></i> Admin Bookings
+    </button>
+  </div>
+  <div class="ad-slider" id="adSlider">
+    <div class="slides">
+      <img src="image/car 1.jpg" class="slide" />
+      <img src="image/car 2.jpg" class="slide" />
+      <img src="image/car3.jpg" class="slide" />
+    </div>
+  </div>
+
+  <div class="slider-dots" id="sliderDots"></div>
+
+  <div class="find-car">
+    <h2>Find your right car</h2>
+    <div class="car-options">
+      <a href="newcars.html" class="car-option new-car">
+        <img src="image/new car.jpg" alt="New Cars">
+        <h3>New Cars</h3>
+        <p>with exciting offers →</p>
+      </a>
+      <a href="car-service.html" class="car-option service-car">
+        <img src="image/car service.png" alt="Car Service">
+        <h3>Car Service</h3>
+        <p>Book maintenance & repairs →</p>
+      </a>
+      <a href="sellcar.html" class="car-option sell-car">
+        <img src="image/sell car.jpg" alt="Sell Car">
+        <h3>Sell Car</h3>
+        <p>at the best price →</p>
+      </a>
+      <a href="compare.html" class="car-option compare-car">
+        <img src="image/collection.jpg" alt="Compare">
+        <h3>Compare</h3>
+        <p>and find the right car →</p>
+      </a>
+    </div>
+  </div>
+
+  <div class="most-searched">
+    <h2>The most searched cars</h2>
+    <div class="car-tabs" role="tablist" aria-label="Car categories">
+      <button class="tab active" data-tab="suv">SUV</button>
+      <button class="tab" data-tab="Vintage">Vintage</button>
+      <button class="tab" data-tab="muv">MUV</button>
+      <button class="tab" data-tab="luxury">Luxury</button>
+    </div>
+
+<div class="cars-grid" id="suv">
+  <div class="car-card">
+    <a href="car-details.html?id=scorpio"><img src="image/scorpio.jpg" alt="Mahindra Scorpio"></a>
+    <h3>Mahindra Scorpio</h3>
+    <p>₹13.77 - 17.72 Lakh*</p>
+    <a href="car-details.html?id=scorpio" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=rangeRover"><img src="image/Range.jpg" alt="TATA Range Rover"></a>
+    <h3>TATA Range Rover</h3>
+    <p>₹11.11 - 20.15 Lakh*</p>
+    <a href="car-details.html?id=rangeRover" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=gloster"><img src="image/gloster.jpg" alt="Mg gloster"></a>
+    <h3>MG Gloster</h3>
+    <p>₹33.43 - 51.44 Lakh*</p>
+    <a href="car-details.html?id=gloster" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=curve"><img src="image/curve.jpg" alt="TATA EV curve"></a>
+    <h3>TATA EV curve</h3>
+    <p>₹14.94 - 22.35 Lakh*</p>
+    <a href="car-details.html?id=curve" class="offer-btn">View Offers</a>
+  </div>
+</div>
+
+
+<div class="cars-grid" id="Vintage" style="display:none;">
+  <div class="car-card">
+    <a href="car-details.html?id=mustang"><img src="image/mustamg.jpg" alt="mustamg vintage"></a>
+    <h3>Mustang vintage</h3>
+    <p>₹4.50 - 6.00 Lakh*</p>
+    <a href="car-details.html?id=mustang" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=coriza"><img src="image/coriza.jpg" alt="coriza vintage"></a>
+    <h3>Coriza vintage</h3>
+    <p>₹5.60 - 8.20 Lakh*</p>
+    <a href="car-details.html?id=coriza" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=retro"><img src="image/retro.jpg" alt="white classic retro"></a>
+    <h3>White classic retro</h3>
+    <p>₹6.00 - 9.03 Lakh*</p>
+    <a href="car-details.html?id=retro" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=delta"><img src="image/delta.jpg" alt="delta sedam"></a>
+    <h3>Delta sedam</h3>
+    <p>₹7.04 - 11.21 Lakh*</p>
+    <a href="car-details.html?id=delta" class="offer-btn">View Offers</a>
+  </div>
+</div>
+
+
+<div class="cars-grid" id="muv" style="display:none;">
+  <div class="car-card">
+    <a href="car-details.html?id=fortuner"><img src="image/Fortuner.jpg" alt="Toyota Fortuner"></a>
+    <h3>Toyota Fortuner</h3>
+    <p>₹17.00 - 24.00 Lakh*</p>
+    <a href="car-details.html?id=fortuner" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=carens"><img src="image/carens.jpg" alt="Kia Carens"></a>
+    <h3>Kia Carens</h3>
+    <p>₹10.45 - 18.95 Lakh*</p>
+    <a href="car-details.html?id=carens" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=innova"><img src="image/innova.jpg" alt="Toyota Innova"></a>
+    <h3>Toyota Innova</h3>
+    <p>₹17.00 - 24.00 Lakh*</p>
+    <a href="car-details.html?id=innova" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=jimny"><img src="image/Jimny.jpg" alt="Maruti Jimny"></a>
+    <h3>Maruti Jimny</h3>
+    <p>₹13.41 - 15.70 Lakh*</p>
+    <a href="car-details.html?id=jimny" class="offer-btn">View Offers</a>
+  </div>
+</div>
+
+
+<div class="cars-grid" id="luxury" style="display:none;">
+  <div class="car-card">
+    <a href="car-details.html?id=rangeRoverSE"><img src="image/rower.jpg" alt="range rowers"></a>
+    <h3>Range rower super edition</h3>
+    <p>₹55.00 Lakh*</p>
+    <a href="car-details.html?id=rangeRoverSE" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=defender"><img src="image/Defender.jpg" alt="Defender"></a>
+    <h3>Defender</h3>
+    <p>₹61.00 Lakh*</p>
+    <a href="car-details.html?id=defender" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=gwagen"><img src="image/G-wagen.jpg" alt="G-wagen"></a>
+    <h3>G-wagen</h3>
+    <p>₹75.00 Lakh*</p>
+    <a href="car-details.html?id=gwagen" class="offer-btn">View Offers</a>
+  </div>
+
+  <div class="car-card">
+    <a href="car-details.html?id=rollsroyce"><img src="image/Rolls.jpg" alt="Rolls royce"></a>
+    <h3>Rolls royce</h3>
+    <p>₹71.60 Lakh*</p>
+    <a href="car-details.html?id=rollsroyce" class="offer-btn">View Offers</a>
+  </div>
+</div>
+
+
+  <div id="overlay" class="overlay" onclick="closeSlides()"></div>
+
+  <div id="menuSlide" class="slide-panel">
+    <h3>☰ Menu</h3>
+    <ul style="list-style: none; padding: 0;">
+      <li><a href="home.html" style="color: #fff; text-decoration: none;">Home</a></li>
+      <li><a href="car-service.html" style="color: #fff; text-decoration: none;">Car Service</a></li>
+      <li><a href="newcars.html" style="color: #fff; text-decoration: none;">new car</a></li>
+      <li><a href="compare.html" style="color: #fff; text-decoration: none;">compare</a></li>
+      <li><a href="contact.html" style="color: #fff; text-decoration: none;">Contact</a></li>
+    </ul>
+  </div>
+
+  <div id="locationSlide" class="slide-panel">
+    <h3>📍 Location</h3>
+    <p>Select your city or area preferences.</p>
+  </div>
+
+  <div id="notificationSlide" class="slide-panel">
+    <h3>🔔 Notifications</h3>
+    <p>You have no new notifications.</p>
+  </div>
+
+  <div id="userSlide" class="slide-panel">
+    <h3>👤 Profile</h3>
+    <p>Login, Register or View Account Settings.</p>
+  </div>
+  
+  <div id="customAlert"></div>
+
+  <script>
+    // Custom non-alert message box (since alerts are not allowed)
+    function alertBox(message) {
+        let msgBox = document.getElementById('customAlert');
+        if (!msgBox) return; // Should not happen with the element added to HTML
+        
+        // Ensure the box is initially hidden or at the default position
+        msgBox.style.display = 'block';
+        msgBox.textContent = message;
+        msgBox.style.opacity = '1';
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+            msgBox.style.opacity = '0';
+        }, 3000);
+    }
+
+    // Updated function to only handle the Menu slide, as Notification and User are now links or removed.
+    function toggleSlide(type) {
+      closeSlides();
+      document.getElementById('overlay').classList.add('show');
+      // Only the menu slide remains active via this function
+      if (type === 'menu') document.getElementById('menuSlide').classList.add('slide-open');
+    }
+
+    function closeSlides() {
+      document.getElementById('overlay').classList.remove('show');
+      // Only close the menu slide if it's open
+      document.getElementById('menuSlide').classList.remove('slide-open');
+    }
+    
+    // NEW FUNCTION: Scrolls to the 'Get trusted used cars nearby' section
+    function scrollToNearbyCars() {
+      const targetElement = document.querySelector('.used-cars-nearby');
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+      }
+      closeSlides(); 
+    }
+
+    document.addEventListener('keydown', (e) => { if(e.key==="Escape") closeSlides(); });
+
+    const adSlider = document.getElementById("adSlider");
+    adSlider.addEventListener("wheel", function(e) { e.preventDefault(); adSlider.scrollLeft += e.deltaY*3; });
+
+    const slides = document.querySelectorAll(".slide");
+    const dotsContainer = document.getElementById("sliderDots");
+    slides.forEach((_,index)=>{ const dot=document.createElement("div"); dot.classList.add("dot"); dot.addEventListener("click",()=>{ adSlider.scrollLeft = index*adSlider.clientWidth; }); dotsContainer.appendChild(dot); });
+    function updateDots(){ const index = Math.round(adSlider.scrollLeft/adSlider.clientWidth); document.querySelectorAll(".dot").forEach((dot,i)=>dot.classList.toggle("active",i===index)); }
+    adSlider.addEventListener("scroll", updateDots); updateDots();
+
+    (function setupMostSearchedTabs(){
+      const tabs = document.querySelectorAll('.most-searched .car-tabs .tab');
+      const grids = document.querySelectorAll('.most-searched .cars-grid');
+      function show(tabName){
+        tabs.forEach(t=>t.classList.toggle('active',t.dataset.tab===tabName));
+        grids.forEach(g=>{ g.style.display = g.id===tabName?'grid':'none'; });
+      }
+      tabs.forEach(t=>t.addEventListener('click',()=>show(t.dataset.tab)));
+      show('suv');
+    })();
+
+    // SEARCH FUNCTIONALITY (Fuzzy Search & Autocomplete)
+    const searchInput = document.querySelector(".search-box input");
+    const searchButton = document.querySelector(".search-box button");
+    const suggestionsBox = document.getElementById("suggestions-box"); 
+    
+    // --- ADMIN BUTTON LOGIC ---
+    const adminBookingButton = document.getElementById('adminBookingButton');
+    
+    // NEW LOGIC: Check localStorage for 'role' and display button if 'admin'
+    const userRole = localStorage.getItem("role");
+    if (userRole === "admin") {
+        adminBookingButton.style.display = 'inline-block';
+    } else {
+        adminBookingButton.style.display = 'none';
+    }
+
+    // *** CONNECTION TO admin_bookings.html ***
+    adminBookingButton.addEventListener('click', () => {
+        console.log('Admin accessing Booking Panel...');
+        // Navigate directly to the admin dashboard page
+        window.location.href = 'admin_bookings.html';
+    });
+
+    // ------------------------------------
+
+
+    const carPages = {
+      // Existing Search Links
+      "hyundai creta": "hyundai-creta.html",
+      "kia seltos": "kia-seltos.html",
+      "renault kiger": "renault-kiger.html",
+      "maruti s-presso": "maruti-s-presso.html",
+      "hyundai grand i10": "hyundai-grand-i10.html",
+      "tata tigor": "tata-tigor.html",
+      "maruti swift": "maruti-swift.html",
+      "honda jazz": "honda-jazz.html",
+      "honda city": "honda-city.html",
+      "hyundai verna": "hyundai-verna.html",
+      "skoda octavia": "skoda-octavia.html",
+      "toyota corolla": "toyota-corolla.html",
+      "maruti ciaz": "maruti-ciaz.html",
+      "mahindra marazzo": "mahindra-marazzo.html",
+      "tata hexa": "tata-hexa.html",
+      "renault triber": "renault-triber.html",
+      "maruti ertiga": "maruti-ertiga.html",
+      "bmw 5 series": "bmw-5series.html",
+      "mercedes c-class": "mercedes-c-class.html",
+      "audi a6": "audi-a6.html",
+      "jaguar xf": "jaguar-xf.html",
+      "volvo s90": "volvo-s90.html",
+      
+      // CARS FROM THE 'MOST SEARCHED' GRID
+      "mahindra scorpio": "car-details.html?id=scorpio",
+      "tata range rover": "car-details.html?id=rangeRover",
+      "mg gloster": "car-details.html?id=gloster",
+      "tata ev curve": "car-details.html?id=curve",
+      "mustang vintage": "car-details.html?id=mustang",
+      "coriza vintage": "car-details.html?id=coriza",
+      "white classic retro": "car-details.html?id=retro",
+      "delta sedam": "car-details.html?id=delta",
+      "toyota fortuner": "car-details.html?id=fortuner",
+      "kia carens": "car-details.html?id=carens",
+      "toyota innova": "car-details.html?id=innova",
+      "maruti jimny": "car-details.html?id=jimny",
+      "range rover super edition": "car-details.html?id=rangeRoverSE",
+      "defender": "car-details.html?id=defender",
+      "g-wagen": "car-details.html?id=gwagen",
+      "rolls royce": "car-details.html?id=rollsroyce"
+    };
+
+    function showSuggestions(query) {
+      suggestionsBox.innerHTML = ''; 
+      if (query.length < 2) { 
+        suggestionsBox.style.display = 'none';
+        return;
+      }
+      
+      const matches = Object.keys(carPages).filter(carName => 
+        carName.includes(query)
+      );
+      
+      if (matches.length > 0) {
+        matches.slice(0, 5).forEach(carName => { 
+          const suggestionItem = document.createElement('div');
+          suggestionItem.classList.add('suggestion-item');
+          suggestionItem.textContent = carName.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+          
+          suggestionItem.addEventListener('click', () => {
+            searchInput.value = carName.trim().toUpperCase();
+            suggestionsBox.style.display = 'none';
+            performSearch(carName);
+          });
+          suggestionsBox.appendChild(suggestionItem);
+        });
+        suggestionsBox.style.display = 'block';
+      } else {
+        suggestionsBox.style.display = 'none';
+      }
+    }
+
+    function performSearch(exactQuery) {
+      const query = (exactQuery || searchInput.value).trim().toLowerCase();
+      
+      if (!query) return;
+
+      if (carPages[query]) {
+        window.location.href = carPages[query];
+        return;
+      }
+      
+      const matches = Object.keys(carPages).filter(carName => 
+        carName.includes(query)
+      );
+
+      if (matches.length > 0) {
+        window.location.href = carPages[matches[0]];
+        return;
+      }
+      
+      // Changed alert() to a simple console log/message since alert() is not allowed.
+      console.log("Car not found! Please try a different name or check the suggestions."); 
+    }
+
+    // --- Event Listeners ---
+    searchInput.addEventListener("input", function() {
+      const query = this.value.trim().toLowerCase();
+      showSuggestions(query);
+    });
+
+    document.addEventListener('click', (e) => {
+      const searchBoxElement = document.querySelector('.search-box');
+      if (searchBoxElement && !searchBoxElement.contains(e.target)) {
+        suggestionsBox.style.display = 'none';
+      }
+    });
+
+    searchButton.addEventListener("click", () => performSearch());
+
+    searchInput.addEventListener("keydown", function(e){ 
+      if(e.key==="Enter") {
+        suggestionsBox.style.display = 'none';
+        performSearch(); 
+      }
+    });
+
+  </script>
+
+<div class="popular-brands" style="max-width:900px;margin:40px auto;font-family:'Segoe UI',sans-serif;padding:0 15px;">
+  <h2 style="font-size:24px;margin-bottom:20px;">Popular brands</h2>
+  <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:20px;text-align:center;">
+    
+    <a href="Popular/maruti/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/maruti.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Maruti'" alt="Maruti" style="width:80px;height:auto;"><div>Maruti</div>
+    </a>
+    <a href="Popular/tata/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/tata.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Tata'" alt="Tata" style="width:80px;height:auto;"><div>Tata</div>
+    </a>
+    <a href="Popular/kia/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/kia.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Kia'" alt="Kia" style="width:80px;height:auto;"><div>Kia</div>
+    </a>
+    <a href="Popular/Toyota/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/toyota.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Toyota'" alt="Toyota" style="width:80px;height:auto;"><div>Toyota</div>
+    </a>
+    <a href="Popular/Hyundai/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/hyundai.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Hyundai'" alt="Hyundai" style="width:80px;height:auto;"><div>Hyundai</div>
+    </a>
+    <a href="Popular/mahindra/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/mahindra.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Mahindra'" alt="Mahindra" style="width:80px;height:auto;"><div>Mahindra</div>
+    </a>
+    <a href="Popular/honda/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/honda.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Honda'" alt="Honda" style="width:80px;height:auto;"><div>Honda</div>
+    </a>
+    <a href="Popular/mg/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/mg.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=MG'" alt="MG" style="width:80px;height:auto;"><div>MG</div>
+    </a>
+    <a href="Popular/skoda/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/skoda.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Skoda'" alt="Skoda" style="width:80px;height:auto;"><div>Skoda</div>
+    </a>
+    <a href="Popular/jeep/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/jeep.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Jeep'" alt="Jeep" style="width:80px;height:auto;"><div>Jeep</div>
+    </a>
+    <a href="Popular/renault/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/renault.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Renault'" alt="Renault" style="width:80px;height:auto;"><div>Renault</div>
+    </a>
+    <a href="Popular/nissan/index.html" style="text-decoration:none;color:#000;">
+      <img src="image/nissan.jpg" onerror="this.onerror=null;this.src='https://placehold.co/80x80/f0f0f0/666?text=Nissan'" alt="Nissan" style="width:80px;height:auto;"><div>Nissan</div>
+    </a>
+
+  </div>
+</div>
+
+<div class="used-cars-nearby" style="max-width:900px;margin:40px auto;font-family:'Segoe UI',sans-serif;padding:0 15px;">
+  <h2 style="font-size:24px;margin-bottom:20px;">Get trusted used cars nearby</h2>
+  <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:20px;text-align:center;">
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Ahmedabad" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/ahmedabad.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Ahm'" alt="Ahmedabad" style="width:60px;height:auto;">
+      <div>Ahmedabad</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Bangalore" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/bangalore.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Ban'" alt="Bangalore" style="width:60px;height:auto;">
+      <div>Bangalore</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Chennai" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/chennai.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Che'" alt="Chennai" style="width:60px;height:auto;">
+      <div>Chennai</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Delhi+NCR" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/delhi.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Del'" alt="Delhi NCR" style="width:60px;height:auto;">
+      <div>Delhi NCR</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Gurgaon" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/gurgaon.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Gur'" alt="Gurgaon" style="width:60px;height:auto;">
+      <div>Gurgaon</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Hyderabad" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/hyderabad.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Hyd'" alt="Hyderabad" style="width:60px;height:auto;">
+      <div>Hyderabad</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Jaipur" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/jaipur.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Jai'" alt="Jaipur" style="width:60px;height:auto;">
+      <div>Jaipur</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Kolkata" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/kolkata.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Kol'" alt="Kolkata" style="width:60px;height:auto;">
+      <div>Kolkata</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Mumbai" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/mumbai.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Mum'" alt="Mumbai" style="width:60px;height:auto;">
+      <div>Mumbai</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Noida" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/noida.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Noi'" alt="Noida" style="width:60px;height:auto;">
+      <div>Noida</div>
+    </a>
+
+    <a href="http://googleusercontent.com/maps.google.com/search?q=Pune" target="_blank" style="text-decoration:none;color:#000;">
+      <img src="image/pune.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=Pun'" alt="Pune" style="width:60px;height:auto;">
+      <div>Pune</div>
+    </a>
+
+  </div>
+</div>
+<script src="admin.js">
+
+</script>
+<footer style="background-color:#f5f5f5; font-family: 'Segoe UI', sans-serif; margin-top:40px; border-top:1px solid #ddd; padding:30px 20px; text-align:center;">
+    <div style="max-width:1100px; margin:auto;">
+
+      <img src="image/logo.jpg" onerror="this.onerror=null;this.src='https://placehold.co/60x60/f0f0f0/666?text=LOGO'" alt="Royal Car Logo" style="width:60px; height:60px; object-fit:contain;">
+      <h2 style="margin:10px 0 5px; font-weight:bold; color:#222;">ROYAL CAR</h2>
+      <p style="margin:0; font-size:14px; color:#444;">Your next adventure starts with us</p>
+
+      <div style="margin:20px 0;">
+        <a href="#" style="margin:0 8px; color:#222; font-size:20px;"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" style="margin:0 8px; color:#222; font-size:20px;"><i class="fab fa-x-twitter"></i></a>
+        <a href="#" style="margin:0 8px; color:#222; font-size:20px;"><i class="fab fa-instagram"></i></a>
+        <a href="#" style="margin:0 8px; color:#222; font-size:20px;"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+
+      <p style="font-size:14px; margin-bottom:20px;">
+        <a href="mailto:support@royalcar.com" style="color:#222; text-decoration:none;">support@royalcar.com</a>
+      </p>
+
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:30px; margin-bottom:20px;">
+        <div>
+          <h4 style="margin-bottom:10px; color:#222;">About</h4>
+          <a href="#" style="display:block; color:#444; font-size:14px; text-decoration:none;">About Us</a>
+          <a href="#" style="display:block; color:#444; font-size:14px; text-decoration:none;">Contact</a>
+        </div>
+        <div>
+          <h4 style="margin-bottom:10px; color:#222;">Connect</h4>
+          <a href="#" style="display:block; color:#444; font-size:14px; text-decoration:none;">Facebook</a>
+          <a href="#" style="display:block; color:#444; font-size:14px; text-decoration:none;">Instagram</a>
+        </div>
+        <div>
+          <h4 style="margin-bottom:10px; color:#222;">Others</h4>
+          <a href="#" style="display:block; color:#444; font-size:14px; text-decoration:none;">Privacy Policy</a>
+          <a href="#" style="display:block; color:#444; font-size:14px; text-decoration:none;">Terms & Conditions</a>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <a href="https://play.google.com/store/games?hl=en"><img src="image/google-play.png" onerror="this.onerror=null;this.src='https://placehold.co/120x40/f0f0f0/666?text=Google+Play'" alt="Google Play" style="height:40px; margin:5px;"></a>
+        <a href="https://www.apple.com/in/app-store/"><img src="image/app-store.png" onerror="this.onerror=null;this.src='https://placehold.co/120x40/f0f0f0/666?text=App+Store'" alt="App Store" style="height:40px; margin:5px;"></a>
+      </div>
+
+      <p style="margin-top:20px; font-size:12px; color:#666;">© 2025 Royal Car. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

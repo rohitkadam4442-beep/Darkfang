@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Contact Inquiries</title>
+    <link rel="stylesheet" href="style1.css"> 
+    <style>
+        /* Basic Admin CSS for readability */
+        body { background-color: var(--black); color: var(--off-white); }
+        .admin-container { max-width: 1400px; margin: 50px auto; padding: 20px; text-align: center; }
+        .inquiry-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            font-size: 0.9rem;
+        }
+        .inquiry-table th, .inquiry-table td { 
+            border: 1px solid var(--dark-grey); 
+            padding: 10px; 
+            text-align: left; 
+            vertical-align: top; /* Important for long messages/replies */
+        }
+        .inquiry-table th { background-color: var(--dark-grey); color: var(--gold); }
+        .inquiry-table tr:nth-child(even) { background-color: #222; }
+        .inquiry-table td:nth-child(6) { max-width: 300px; word-wrap: break-word; } /* Message Column */
+        .inquiry-table td:nth-child(7) { max-width: 200px; word-wrap: break-word; } /* Reply Column */
+
+        #viewInquiriesBtn { 
+            margin-bottom: 20px; 
+            padding: 10px 20px; 
+            background-color: var(--gold);
+            color: var(--black);
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        #viewInquiriesBtn:hover { background-color: #FFD700; }
+
+        /* Reply and Delete Buttons */
+        .action-btns button {
+            padding: 5px 10px;
+            margin: 2px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: opacity 0.3s;
+        }
+        .reply-btn { background-color: var(--success-green); color: white; }
+        .reply-btn:hover { opacity: 0.8; }
+        .delete-btn { background-color: var(--error-red); color: white; }
+        .delete-btn:hover { opacity: 0.8; }
+
+        /* Reply Form Styling */
+        .reply-form-container {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid var(--gold);
+            border-radius: 4px;
+            background-color: #1a1a1a;
+        }
+        .reply-form-container textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--dark-grey);
+            background-color: #2a2a2a;
+            color: var(--off-white);
+            border-radius: 4px;
+        }
+        .reply-form-container button {
+            padding: 8px 15px;
+            margin-right: 10px;
+        }
+
+        .alert { padding: 15px; margin-top: 20px; border-radius: 4px; text-align: left; }
+        .alert-error { background-color: var(--error-red); color: white; }
+        .alert-success { background-color: var(--success-green); color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <h1>Contact Inquiry Management</h1>
+        <p>Review and respond to client messages.</p>
+        
+        <button id="viewInquiriesBtn">Refresh Inquiries</button>
+        
+        <div id="messageArea" class="alert-success">Click "Refresh Inquiries" to load data from the server.</div>
+        
+        <div id="inquiryDisplayArea">
+            </div>
+    </div>
+
+    <script>
+        const SERVER_URL = 'http://localhost:3000';
+        const displayArea = document.getElementById('inquiryDisplayArea');
+        const messageArea = document.getElementById('messageArea');
+        const viewBtn = document.getElementById('viewInquiriesBtn');
+
+        // --- Event Listener ---
+        viewBtn.addEventListener('click', fetchInquiries);
+
+        // --- Action Handlers ---
+
+        async function handleDelete(inquiryId) {
+            // Confirmation dialog is crucial before deleting data
+            if (!confirm("Are you sure you want to permanently delete this inquiry?")) {
+                return;
+            }
+
+            try {
+                // This request requires the new DELETE endpoint on the server
+                const response = await fetch(`${SERVER_URL}/api/inquiry/${inquiryId}`, {
+                    method: 'DELETE',
+                });
+
+                if (response.ok) {
+                    messageArea.className = 'alert alert-success';
+                    messageArea.textContent = 'Inquiry successfully deleted.';
+                    fetchInquiries(); // Reload the table
+                } else {
+                    const error = await response.json();
+                    messageArea.className = 'alert alert-error';
+                    messageArea.textContent = `Error deleting inquiry: ${error.error}`;
+                }
+            } catch (error) {
+                console.error("Delete Error:", error);
+                messageArea.className = 'alert alert-error';
+                messageArea.textContent = 'Network error. Check server connection.';
+            }
+        }
+
+        function toggleReplyForm(inquiryId, button) {
+            const row = button.closest('tr');
+            const replyCell = row.querySelector('.reply-cell');
+            const formId = `reply-form-${inquiryId}`;
+
+            // If the form exists, remove it (toggle off)
+            if (document.getElementById(formId)) {
+                document.getElementById(formId).remove();
+                button.textContent = 'Reply';
+                return;
+            }
+
+            // Create the reply form (toggle on)
+            const formHTML = `
+                <div id="${formId}" class="reply-form-container">
+                    <textarea placeholder="Type your reply here..." id="reply-text-${inquiryId}"></textarea>
+                    <button class="reply-btn" onclick="handleReply(event, '${inquiryId}')">Submit Reply</button>
+                    <button type="button" class="delete-btn" onclick="toggleReplyForm('${inquiryId}', this)">Cancel</button>
+                </div>
+            `;
+            replyCell.insertAdjacentHTML('beforeend', formHTML);
+            button.textContent = 'Hide Form';
+        }
+
+        async function handleReply(event, inquiryId) {
+            event.preventDefault();
+            const formContainer = event.target.closest('.reply-form-container');
+            const replyTextarea = formContainer.querySelector('textarea');
+            const replyContent = replyTextarea.value.trim();
+            
+            if (!replyContent) {
+                alert("Reply cannot be empty.");
+                return;
+            }
+
+            try {
+                // This request requires the new PUT /reply endpoint on the server
+                const response = await fetch(`${SERVER_URL}/api/inquiry/${inquiryId}/reply`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminReply: replyContent })
+                });
+
+                if (response.ok) {
+                    messageArea.className = 'alert alert-success';
+                    messageArea.textContent = 'Admin reply successfully stored and sent.';
+                    fetchInquiries(); // Reload the table to show the new reply
+                } else {
+                    const error = await response.json();
+                    messageArea.className = 'alert alert-error';
+                    messageArea.textContent = `Error submitting reply: ${error.error}`;
+                }
+            } catch (error) {
+                console.error("Reply Error:", error);
+                messageArea.className = 'alert alert-error';
+                messageArea.textContent = 'Network error. Check server connection.';
+            }
+        }
+
+        // --- Data Fetching and Rendering ---
+
+        async function fetchInquiries() {
+            viewBtn.disabled = true;
+            messageArea.textContent = 'Fetching inquiries...';
+            messageArea.className = 'alert'; // Neutral alert style
+
+            try {
+                const response = await fetch(`${SERVER_URL}/api/inquiries`);
+                
+                if (!response.ok) {
+                    messageArea.className = 'alert alert-error';
+                    messageArea.textContent = `Server responded with status: ${response.status}. Check if Node server is running on port 3000.`;
+                    return;
+                }
+
+                const inquiries = await response.json();
+                
+                if (inquiries.length === 0) {
+                    messageArea.className = 'alert';
+                    messageArea.textContent = 'No contact inquiries found.';
+                } else {
+                    messageArea.className = 'alert alert-success';
+                    messageArea.textContent = `${inquiries.length} inquiries loaded successfully.`;
+                }
+
+                renderInquiriesTable(inquiries);
+
+            } catch (error) {
+                console.error("Error fetching inquiries:", error);
+                messageArea.className = 'alert alert-error';
+                messageArea.textContent = 'Error fetching data. Check server connection (http://localhost:3000).';
+            } finally {
+                viewBtn.disabled = false;
+            }
+        }
+
+        function renderInquiriesTable(inquiries) {
+            let tableHTML = `<table class="inquiry-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Interest</th>
+                        <th>User Message</th>
+                        <th>Admin Reply</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            inquiries.forEach(inquiry => {
+                const date = new Date(inquiry.submittedAt).toLocaleString();
+                // Check if adminReply and repliedAt exist
+                const replyDate = inquiry.repliedAt ? new Date(inquiry.repliedAt).toLocaleDateString() : '';
+                const replyDisplay = inquiry.adminReply 
+                    ? `<strong>Replied (${replyDate}):</strong><br>${inquiry.adminReply}` 
+                    : '<span style="color:var(--error-red);">PENDING</span>';
+
+                tableHTML += `
+                    <tr>
+                        <td>${date}</td>
+                        <td>${inquiry.fullName}</td>
+                        <td>${inquiry.email}</td>
+                        <td>${inquiry.phone || 'N/A'}</td>
+                        <td>${inquiry.interest || 'General'}</td>
+                        <td>${inquiry.message}</td>
+                        <td class="reply-cell">
+                            ${replyDisplay}
+                        </td>
+                        <td class="action-btns">
+                            <button class="reply-btn" onclick="toggleReplyForm('${inquiry._id}', this)">Reply</button>
+                            <button class="delete-btn" onclick="handleDelete('${inquiry._id}')">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `</tbody></table>`;
+            displayArea.innerHTML = tableHTML;
+        }
+
+        // Initial load check (optional, but helpful for first time users)
+        // fetchInquiries(); 
+    </script>
+</body>
+</html>

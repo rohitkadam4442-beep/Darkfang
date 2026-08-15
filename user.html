@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Login - Royal Car</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', sans-serif; 
+      background:#111; color:#fff; 
+      display:flex; justify-content:center; align-items:center; 
+      height:100vh;
+    }
+    .box {
+      background:#222; padding:30px; border-radius:12px; width:300px; text-align:center;
+    }
+    input { width:100%; padding:10px; margin:8px 0; border:none; border-radius:6px; }
+    button { width:100%; padding:12px; background:#FFD700; border:none; border-radius:6px; font-weight:bold; cursor:pointer; }
+    button:hover { background:#e6c200; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>User Login</h2>
+    <input type="text" id="userUsername" placeholder="Username"> 
+    <input type="password" placeholder="Password">
+    <button onclick="loginUser()">Login</button>
+
+<script>
+  // MODIFIED FUNCTION: Delay removed, immediate redirection
+  async function loginUser(){
+    const username = document.getElementById('userUsername').value || "anonymous_user"; 
+    const role = "user"; 
+
+    try {
+        // API call to record the user login
+        await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, role })
+        });
+    } catch(error) {
+        console.error("Failed to record login:", error);
+        // Non-critical error, proceed with navigation
+    }
+    
+    localStorage.setItem("role", role);  // store role
+    
+    // DELAY REMOVED: Immediate redirection
+    window.location.href="home.html"; 
+  }
+</script>
+
+  </div>
+</body>
+</html>

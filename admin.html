@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Login - Royal Car</title>
+  <style>
+    body { font-family:'Segoe UI',sans-serif; background:#111; color:#fff; display:flex; justify-content:center; align-items:center; height:100vh; }
+    .box { background:#222; padding:30px; border-radius:12px; width:300px; text-align:center; }
+    input { width:100%; padding:10px; margin:8px 0; border:none; border-radius:6px; }
+    button { width:100%; padding:12px; background:#FFD700; border:none; border-radius:6px; font-weight:bold; cursor:pointer; }
+    button:hover { background:#e6c200; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Admin Login</h2>
+    <input type="text" id="adminUser" placeholder="Admin Username">
+    <input type="password" id="adminPass" placeholder="Password">
+    <button onclick="checkLogin()">Login</button>
+  </div>
+
+  <script>
+  // MODIFIED FUNCTION: Delay removed, immediate redirection
+  async function checkLogin(){ 
+    const u = document.getElementById("adminUser").value;
+    const p = document.getElementById("adminPass").value;
+    const role = "admin"; 
+
+    if(u==="admin" && p==="1234"){ 
+        try {
+            // API call to record the admin login
+            await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, role })
+            });
+        } catch(error) {
+            console.error("Failed to record admin login:", error);
+            // Non-critical error, proceed with navigation
+        }
+        
+      localStorage.setItem("role", role);   // store role
+      
+      // DELAY REMOVED: Immediate redirection
+      window.location.href="home.html"; 
+
+    } else {
+      alert("Invalid Admin Credentials!"); 
+    }
+  }
+</script>
+
+</body>
+</html>

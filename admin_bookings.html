@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Booking Dashboard</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+
+        /* Custom styles for print media */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            /* Hide the header, actions column, and print button when printing */
+            .no-print, .action-column {
+                display: none !important;
+            }
+            .booking-table {
+                box-shadow: none !important;
+                border: 1px solid #000;
+            }
+            .booking-table th, .booking-table td {
+                border-color: #ccc !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navigation (No Print) -->
+    <header class="no-print bg-white shadow-md">
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-900">
+                <i class="fas fa-list-check text-blue-600 mr-2"></i> Booking Management
+            </h1>
+            <button id="printButton" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-300">
+                <i class="fas fa-print mr-2"></i> Print Report
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-4 sm:px-0">
+            
+            <!-- Status/Loading Message -->
+            <div id="statusMessage" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded-lg" role="alert">
+                <p class="font-bold">Loading Data</p>
+                <p>Attempting to connect to the backend server...</p>
+            </div>
+
+            <!-- Bookings Table Container -->
+            <div id="bookingsContainer" class="hidden flex flex-col">
+                <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                        <div class="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg booking-table">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Receipt ID
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Customer Name
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Car ID
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Delivery Date
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Booking Date
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Amount Paid
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Balance
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider action-column">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookingsTableBody" class="bg-white divide-y divide-gray-200">
+                                    <!-- Booking rows will be injected here by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connection Instructions -->
+            <div class="mt-8 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg max-w-xl mx-auto">
+                <p class="font-bold">Backend Server Check</p>
+                <p class="text-sm mt-1">
+                    If data is not loading, ensure your Node.js server (`server.js`) is running locally at:
+                    <code class="bg-red-200 text-red-800 p-1 rounded">http://localhost:3000</code>
+                </p>
+            </div>
+
+        </div>
+    </main>
+    
+    <!-- Font Awesome for Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+
+    <script type="text/javascript">
+        // The API endpoint for fetching booking data from your Express/MongoDB server
+        const API_URL = 'http://localhost:3000/api/bookings';
+
+        function getStatusClasses(status) {
+            switch (status) {
+                case 'Confirmed': return 'bg-green-100 text-green-800';
+                case 'Pending': return 'bg-yellow-100 text-yellow-800';
+                case 'Cancelled': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        /**
+         * Sends a PATCH request to update the status of a specific booking.
+         * @param {string} bookingId The MongoDB _id of the booking.
+         * @param {string} newStatus The new status to set ('Confirmed', 'Cancelled', 'Pending').
+         */
+        async function updateBookingStatus(bookingId, newStatus) {
+            // Simple status confirmation (since alert() is disallowed)
+            console.log(`Attempting to update booking ${bookingId} to status: ${newStatus}`);
+
+            const updateUrl = `${API_URL}/${bookingId}`;
+
+            try {
+                const response = await fetch(updateUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to update status. Server response status: ${response.status}`);
+                }
+
+                // Status message to confirm the action (since the table refreshes in 5s)
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.classList.remove('hidden', 'bg-red-100', 'border-red-500', 'text-red-700');
+                statusMessage.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+                statusMessage.innerHTML = `<p class="font-bold">Success!</p><p>Booking ${bookingId.substring(0, 8)}... status updated to: ${newStatus}</p>`;
+
+                // Immediately refetch data instead of waiting for the interval
+                fetchBookings();
+
+            } catch (error) {
+                console.error("Error updating booking status:", error);
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.classList.remove('hidden', 'bg-yellow-100', 'border-yellow-500', 'text-yellow-700');
+                statusMessage.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+                statusMessage.innerHTML = `<p class="font-bold">Update Failed</p><p>Could not update booking status. Check if server supports PATCH and the ID is valid. Details: ${error.message}</p>`;
+            }
+        }
+
+        /**
+         * Placeholder function for viewing detailed information.
+         * @param {string} bookingId The MongoDB _id of the booking.
+         */
+        function viewBookingDetails(bookingId) {
+            // Replace this with a modal opening or new page navigation for detailed view
+            console.log(`Viewing details for booking ID: ${bookingId}`);
+            alert(`Viewing Details for Booking ID: ${bookingId}`);
+        }
+
+        /**
+         * Fetches booking data from the local REST API and renders it.
+         */
+        async function fetchBookings() {
+            const tableBody = document.getElementById('bookingsTableBody');
+            const statusMessage = document.getElementById('statusMessage');
+            const bookingsContainer = document.getElementById('bookingsContainer');
+            
+            // Show loading state (and reset from previous success/error messages)
+            statusMessage.textContent = "Loading booking data from local server (http://localhost:3000/)...";
+            statusMessage.classList.remove('hidden', 'bg-red-100', 'border-red-500', 'text-red-700', 'bg-green-100', 'border-green-500', 'text-green-700');
+            statusMessage.classList.add('bg-yellow-100', 'border-yellow-500', 'text-yellow-700');
+            tableBody.innerHTML = '';
+            bookingsContainer.classList.add('hidden');
+
+            try {
+                // Fetch data from the Express/MongoDB endpoint
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const bookings = await response.json();
+
+                if (bookings.length === 0) {
+                    statusMessage.textContent = "No car bookings found.";
+                    statusMessage.classList.remove('hidden');
+                    bookingsContainer.classList.add('hidden');
+                    return;
+                }
+
+                let htmlContent = '';
+                bookings.forEach(data => {
+                    // Mongoose provides a unique ID as _id, which is used for PATCH requests
+                    const mongoId = data._id; 
+                    
+                    // Format dates and currency
+                    const deliveryDate = new Date(data.deliveryDate).toLocaleDateString();
+                    const bookingDate = new Date(data.bookingDate).toLocaleDateString();
+                    const currentStatus = data.status || 'Pending';
+                    const statusClass = getStatusClasses(currentStatus);
+                    
+                    // Action buttons (Now including status update functionality)
+                    let actionButtons = `
+                        <button onclick="viewBookingDetails('${mongoId}')" 
+                                class="px-2 py-1 text-xs text-indigo-600 hover:bg-indigo-100 rounded-md font-medium">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    `;
+                    
+                    // Add Confirm/Cancel buttons only if status is not already confirmed/cancelled
+                    if (currentStatus !== 'Confirmed') {
+                        actionButtons += `
+                            <button onclick="updateBookingStatus('${mongoId}', 'Confirmed')" 
+                                    class="px-2 py-1 text-xs text-green-600 hover:bg-green-100 rounded-md font-medium ml-1">
+                                <i class="fas fa-check"></i> Confirm
+                            </button>
+                        `;
+                    }
+                    if (currentStatus !== 'Cancelled') {
+                        actionButtons += `
+                            <button onclick="updateBookingStatus('${mongoId}', 'Cancelled')" 
+                                    class="px-2 py-1 text-xs text-red-600 hover:bg-red-100 rounded-md font-medium ml-1">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                        `;
+                    }
+                    
+                    // Create table row
+                    htmlContent += `
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${data.receiptId}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">${data.customerName}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${data.carId}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${deliveryDate}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${bookingDate}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹${(data.amountPaid || 0).toLocaleString()}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹${(data.estimatedBalance || 0).toLocaleString()}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                    ${currentStatus}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm action-column flex flex-wrap items-center">
+                                ${actionButtons}
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableBody.innerHTML = htmlContent;
+                statusMessage.classList.add('hidden');
+                bookingsContainer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Error fetching bookings:", error);
+                statusMessage.textContent = `Failed to connect to backend server. Make sure 'server.js' is running at ${API_URL}. Details: ${error.message}`;
+                statusMessage.classList.remove('hidden');
+                bookingsContainer.classList.add('hidden');
+            }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchBookings();
+            
+            // Set up an automatic refresh interval (simulates real-time updates)
+            setInterval(fetchBookings, 5000); 
+            
+            // Print Functionality
+            document.getElementById('printButton').addEventListener('click', () => {
+                window.print();
+            });
+        });
+    </script>
+</body>
+</html>

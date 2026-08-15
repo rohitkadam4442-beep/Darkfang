@@ -1,0 +1,240 @@
+/* --- Root Variables & Global Styles --- */
+:root {
+    --gold: #D4AF37;
+    --black: #111111;
+    --dark-grey: #1a1a1a;
+    --off-white: #F5F5F5;
+    --font-heading: 'Playfair Display', serif;
+    --font-body: 'Montserrat', sans-serif;
+    --error-red: #e74c3c;
+    --success-green: #2ecc71;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--black);
+    color: var(--off-white);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* --- Admin Button Container Style --- */
+.admin-button-container {
+    text-align: right; /* Position the button on the right */
+    margin-bottom: 20px; /* Space below the button */
+}
+
+/* --- Typography & Header --- */
+h1, h2, h3 {
+    font-family: var(--font-heading);
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+}
+
+header {
+    text-align: center;
+    padding: 4rem 1rem;
+    background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.9));
+    border-bottom: 2px solid var(--gold);
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+header h3 {
+    font-size: 1rem;
+    color: var(--off-white);
+    letter-spacing: 2px;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+
+/* --- Forms and Inputs --- */
+.contact-form {
+    flex: 1;
+    padding: 20px;
+    background-color: var(--dark-grey);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.contact-form h2 {
+    margin-bottom: 1.5rem;
+    color: var(--gold);
+}
+
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    color: var(--off-white);
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus, 
+.form-group select:focus, 
+.form-group textarea:focus {
+    border-color: var(--gold);
+    outline: none;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Primary Button Styling */
+.primary-btn, button:not(.reply-btn):not(.delete-btn) {
+    background-color: var(--gold);
+    color: var(--black);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background-color 0.3s ease, transform 0.1s ease;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.primary-btn:hover, button:not(.reply-btn):not(.delete-btn):hover {
+    background-color: #e0b741; /* Slightly lighter gold */
+    transform: translateY(-2px);
+}
+
+/* ADMIN ACTION BUTTON STYLES for Admin Inquiries Page */
+.reply-btn, .delete-btn {
+    padding: 8px 12px;
+    margin-right: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.reply-btn { background-color: var(--gold); color: var(--black); }
+.reply-btn:hover { background-color: #e0b741; }
+
+.delete-btn { background-color: var(--error-red); color: white; }
+.delete-btn:hover { background-color: #c0392b; }
+/* END ADMIN ACTION BUTTON STYLES */
+
+
+.form-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.form-status.success { background-color: var(--success-green); color: white; }
+.form-status.error { background-color: var(--error-red); color: white; }
+
+
+/* --- Contact Layout --- */
+.contact-container {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.contact-info {
+    flex: 1;
+    padding: 20px;
+}
+
+.contact-info h2 {
+    color: var(--off-white);
+    border-left: 3px solid var(--gold);
+    padding-left: 10px;
+    margin-top: 20px;
+}
+
+/* --- Map & Social --- */
+.map-placeholder {
+    height: 400px;
+    background-color: var(--dark-grey);
+    border: 1px solid var(--gold);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+}
+
+.social-icons a {
+    color: var(--gold);
+    font-size: 1.8rem;
+    margin: 0 1rem;
+    text-decoration: none;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.social-icons a:hover {
+    color: var(--off-white);
+    transform: translateY(-5px);
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+footer hr {
+    border: 0;
+    height: 1px;
+    background-color: var(--gold);
+    max-width: 100px;
+    margin: 0 auto 1.5rem auto;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 800px) {
+    .contact-container {
+        flex-direction: column;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+}

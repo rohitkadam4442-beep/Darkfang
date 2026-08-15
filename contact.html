@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Apex Motors</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+
+    <header>
+        <h1>Your Journey Begins Here</h1>
+        <h3>CONNECT WITH OUR LUXURY AUTOMOTIVE SPECIALISTS</h3>
+    </header>
+
+    <main class="container">
+        <!-- Admin Panel Button Container -->
+        <div id="adminButtonContainer" class="admin-button-container">
+            <a id="adminPanelBtn" href="admin_inquiries.html" class="primary-btn" style="display:none;">
+                <i class="fas fa-user-shield"></i> Admin Panel
+            </a>
+        </div>
+        <!-- End Admin Panel Button Container -->
+
+        <section class="intro">
+            <p>
+                Whether you wish to schedule a private viewing, inquire about our exclusive inventory, or discuss bespoke financing options, the team at <strong>Apex Motors</strong> is at your service. We are dedicated to providing an unparalleled client experience.
+            </p>
+        </section>
+
+        <section class="contact-container">
+            <div class="contact-form">
+                <h2>Send Us A Message</h2>
+                <form id="inquiry-form" novalidate>
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone Number (Optional)</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="interest">Area of Interest</label>
+                        <select id="interest" name="interest">
+                            <option value="General">General Inquiry</option>
+                            <option value="Purchase">Vehicle Purchase</option>
+                            <option value="Financing">Financing & Leasing</option>
+                            <option value="Service">Service & Maintenance</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Your Message / Inquiry</label>
+                        <textarea id="message" name="message" required></textarea>
+                    </div>
+                    <button type="submit" class="primary-btn">Submit Inquiry</button>
+                    <div id="form-status" class="form-status"></div>
+                </form>
+            </div>
+            
+            <div class="contact-info">
+                <h2>Our Contact Channels</h2>
+                <p>We believe in direct and personal communication. Reach out to the right specialist.</p>
+                
+                <h2>Sales Enquiries</h2>
+                <p><strong>General Sales:</strong> (020) 1234-5678</p>
+                <p><strong>Financing:</strong> (020) 1234-5679</p>
+
+                <h2>Digital Concierge</h2>
+                <p>concierge@apexmotors.example</p>
+                
+                <h2>Showroom Hours</h2>
+                <p>
+                    <strong>Monday - Friday:</strong> 9:00 AM - 7:00 PM<br>
+                    <strong>Saturday:</strong> 10:00 AM - 6:00 PM<br>
+                    <strong>Sunday:</strong> By Appointment Only
+                </p>
+            </div>
+        </section>
+
+        <section class="map-section">
+            <h2>Find Our Flagship Showroom</h2>
+            <div class="map-placeholder">
+                <p>Interactive Map Loading...</p>
+            </div>
+        </section>
+        
+        <section class="social-section">
+            <h2>Follow The Collection</h2>
+            <div class="social-icons">
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Apex Motors. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Script for Admin Button Visibility -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminPanelBtn = document.getElementById('adminPanelBtn');
+            // Check if the user's role in localStorage is 'admin'
+            const userRole = localStorage.getItem('role');
+            
+            if (userRole === 'admin' && adminPanelBtn) {
+                // If they are an admin, show the button
+                adminPanelBtn.style.display = 'inline-block';
+            }
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
