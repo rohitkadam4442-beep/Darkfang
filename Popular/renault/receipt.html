@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Receipt</title>
+    <script src="data.js"></script> 
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .receipt-container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #000;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            color: #e63946;
+            font-size: 32px;
+            margin: 0;
+        }
+
+        header p {
+            margin: 5px 0 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #e63946;
+            margin-top: 20px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 30px;
+            margin-top: 15px;
+            font-size: 15px;
+        }
+
+        .details-grid p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .details-grid strong {
+            display: block;
+            color: #111;
+            font-weight: 600;
+        }
+        
+        .car-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .car-info strong {
+            font-size: 16px;
+        }
+
+        .pricing-summary {
+            margin-top: 25px;
+            border-top: 2px dashed #ddd;
+            padding-top: 15px;
+        }
+        
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 16px;
+        }
+
+        .total-row {
+            font-weight: bold;
+            border-top: 2px solid #e63946;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-size: 18px;
+        }
+        
+        .balance-row {
+            color: #e63946;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .thank-you {
+            text-align: center;
+            margin-top: 40px;
+            padding: 15px;
+            background-color: #d1e7dd;
+            color: #0f5132;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .error-display {
+            color: #e63946;
+            text-align: center;
+            padding: 20px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="receipt-container">
+        <header>
+            <h1>Booking Confirmed</h1>
+            <p>Royal Car Dealership</p>
+        </header>
+
+        <div class="section-details">
+            <div class="details-grid">
+                <p><strong>Receipt ID</strong> <span id="receiptId">Loading...</span></p>
+                <p><strong>Booking Date</strong> <span id="bookingDate">Loading...</span></p>
+                <p><strong>Customer Name</strong> <span id="customerName">Loading...</span></p>
+                <p><strong>Customer Phone</strong> <span id="customerPhone">Loading...</span></p>
+                <p><strong>Expected Delivery Date</strong> <span id="deliveryDate">Loading...</span></p>
+                <p><strong>Car ID</strong> <span id="carId">Loading...</span></p>
+            </div>
+        </div>
+
+        <div class="car-info">
+            <div class="section-title">Car Information</div>
+            <div class="details-grid">
+                <p><strong>Model</strong> <span id="carModel">Loading...</span></p>
+                <p><strong>Price Range</strong> <span id="carPriceRange">Loading...</span></p>
+                <p><strong>Engine</strong> <span id="carEngine">Loading...</span></p>
+                <p><strong>Seating Capacity</strong> <span id="carSeating">Loading...</span></p>
+            </div>
+        </div>
+
+        <div class="pricing-summary">
+            <div class="section-title">Pricing Summary</div>
+            
+            <div class="pricing-row">
+                <span>Estimated Base Price:</span>
+                <span id="basePrice">₹0</span>
+            </div>
+            <div class="pricing-row">
+                <span>Estimated Taxes (18%):</span>
+                <span id="taxes">₹0</span>
+            </div>
+            
+            <div class="pricing-row total-row">
+                <span>Total Estimated Cost:</span>
+                <span id="subTotal">₹0</span>
+            </div>
+            
+            <div class="pricing-row" style="color: #0f5132;">
+                <span>Advance Amount Paid:</span>
+                <span id="amountPaid">₹50,000</span>
+            </div>
+            
+            <div class="pricing-row balance-row">
+                <span>Remaining Balance Due:</span>
+                <span id="balanceDue">₹0</span>
+            </div>
+        </div>
+
+        <div class="thank-you">
+            Thank you for booking with Royal Car! Your sales representative will contact you soon.
+        </div>
+
+    </div>
+
+<script>
+    // Helper to format currency
+    function formatCurrency(amount) {
+        if (typeof amount !== 'number') return 'N/A';
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+    }
+    
+    // Function to fetch data from the server and generate the receipt
+    async function generateReceipt() {
+        const receiptContainer = document.querySelector('.receipt-container');
+
+        // 1. Get receiptId from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const receiptId = urlParams.get('receiptId');
+        
+        if (!receiptId) {
+            receiptContainer.innerHTML = '<h1 class="error-display">Error: No Receipt ID Found</h1><p class="error-display">Please start the booking process from the car gallery.</p>';
+            return;
+        }
+
+        // --- Fetch the booking data from the server ---
+        try {
+            const response = await fetch(`http://localhost:3000/api/bookings/${receiptId}`);
+            
+            if (!response.ok) {
+                const errorText = response.status === 404 ? 'Booking not found.' : `Server error: ${response.status} ${response.statusText}`;
+                throw new Error(errorText);
+            }
+
+            const bookingData = await response.json();
+            
+            // --- 3. Populate Booking & Customer Details ---
+            const allCars = typeof carsData !== 'undefined' ? carsData : {};
+            const car = allCars[bookingData.carId]; 
+
+            document.getElementById('receiptId').textContent = bookingData.receiptId;
+            
+            const bookingDate = new Date(bookingData.bookingDate);
+            document.getElementById('bookingDate').textContent = bookingDate.toLocaleDateString('en-IN');
+            
+            document.getElementById('carId').textContent = bookingData.carId.toUpperCase();
+            document.getElementById('customerName').textContent = bookingData.customerName;
+            document.getElementById('customerPhone').textContent = bookingData.customerPhone;
+            
+            // Use YYYY-MM-DD slice to ensure date is correctly interpreted as local date
+            const deliveryDateString = bookingData.deliveryDate.slice(0, 10);
+            document.getElementById('deliveryDate').textContent = new Date(deliveryDateString).toLocaleDateString('en-IN');
+
+            // --- 4. Populate Car Details ---
+            if (car) {
+                document.getElementById('carModel').textContent = car.name;
+                document.getElementById('carPriceRange').textContent = car.price;
+                document.getElementById('carEngine').textContent = car.specs.Engine;
+                document.getElementById('carSeating').textContent = car.specs.Seating;
+            } else {
+                document.getElementById('carModel').textContent = 'N/A';
+                document.getElementById('carPriceRange').textContent = 'N/A';
+                document.getElementById('carEngine').textContent = 'N/A';
+                document.getElementById('carSeating').textContent = 'N/A';
+            }
+
+            // --- 5. Populate Pricing Summary ---
+            const subTotalAmount = bookingData.estimatedBasePrice + bookingData.estimatedTaxes;
+
+            document.getElementById('basePrice').textContent = formatCurrency(bookingData.estimatedBasePrice);
+            document.getElementById('taxes').textContent = formatCurrency(bookingData.estimatedTaxes);
+            document.getElementById('subTotal').textContent = formatCurrency(subTotalAmount);
+            document.getElementById('amountPaid').textContent = formatCurrency(bookingData.amountPaid);
+            document.getElementById('balanceDue').textContent = formatCurrency(bookingData.estimatedBalance);
+
+        } catch (error) {
+            // 6. Handle failure
+            receiptContainer.innerHTML = `<h1 class="error-display">Failed to Load Receipt</h1><p class="error-display">Error: ${error.message}</p><p class="error-display">Please ensure the <strong>server.js</strong> backend is running on <strong>http://localhost:3000</strong>.</p>`;
+        }
+    }
+
+    window.onload = generateReceipt;
+</script>
+</body>
+
+</html>

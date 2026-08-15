@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Car Booking - Royal Car</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #000;
+      color: #FFD700;
+    }
+    header {
+      background: #111;
+      padding: 20px;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      border-bottom: 2px solid #FFD700;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px;
+      flex-wrap: wrap;
+      gap: 40px;
+    }
+    .car-card {
+      background: #111;
+      border: 1px solid #FFD700;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+      width: 350px;
+      text-align: center;
+      padding-bottom: 20px;
+    }
+    .car-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+     .car-card h2, .car-card p {
+        padding: 0 15px;
+        margin: 10px 0;
+    }
+    .booking-form {
+      background: #111;
+      border: 1px solid #FFD700;
+      border-radius: 12px;
+      padding: 30px;
+      width: 400px;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #FFD700;
+      border-radius: 6px;
+      background: #333;
+      color: #FFD700;
+      box-sizing: border-box;
+    }
+    input:focus, select:focus {
+        outline: none;
+        border-color: #FFF;
+    }
+    .car-select-section h2 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .price-details {
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px solid #555;
+    }
+    .price-details div {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    .confirm-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #FFD700;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s;
+      font-weight: bold;
+    }
+    .confirm-btn:hover {
+        background-color: #FFF;
+    }
+    .error-message {
+        color: #e63946;
+        text-align: center;
+        margin-top: 15px;
+    }
+  </style>
+  <script src="data.js"></script>
+  <script src="editor.js"></script> 
+</head>
+<body>
+
+  <header>Royal Car Booking</header>
+
+  <div class="container">
+    
+    <div class="car-select-section">
+        <h2>Your Selected Car</h2>
+        <div class="car-card">
+            <img id="selectedCarImage" src="placeholder.jpg" alt="Selected Car Image">
+            <h2 id="selectedCarName"></h2>
+            <p id="selectedCarPrice"></p>
+            <p style="font-size: 14px; opacity: 0.7;">Booking advance: ₹50,000</p>
+        </div>
+    </div>
+
+    <div class="booking-form">
+      <h2>Confirm Your Details</h2>
+      <form id="bookingForm">
+        
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="date">Expected Delivery Date</label>
+          <input type="date" id="date" required>
+        </div>
+
+        <div class="price-details">
+            <div id="basePriceRow">
+                <span>Base Price (Est.):</span>
+                <span id="estimatedBasePrice">₹0</span>
+            </div>
+            <div id="taxesRow">
+                <span>Estimated Taxes (18%):</span>
+                <span id="estimatedTaxes">₹0</span>
+            </div>
+            <div style="font-weight: bold; border-top: 1px solid #FFD700; padding-top: 10px; margin-top: 10px;">
+                <span>Total Estimated Cost:</span>
+                <span id="estimatedTotal">₹0</span>
+            </div>
+            <div style="color: #e63946; font-weight: bold; margin-top: 15px;">
+                <span>Balance Due (After Advance):</span>
+                <span id="balanceDue">₹0</span>
+            </div>
+        </div>
+
+        <button type="submit" class="confirm-btn">Confirm Booking (Pay Advance ₹50,000)</button>
+        <p class="error-message" id="errorMessage" style="display: none;"></p>
+      </form>
+    </div>
+  </div>
+
+<script>
+    let selectedCarKey = null;
+    const BOOKING_AMOUNT = 50000;
+    const TAX_RATE_ESTIMATE = 0.18;
+    const allCars = typeof carsData !== 'undefined' ? carsData : {};
+
+    // Helper to format currency
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
+    }
+    
+    // Helper to parse price string (e.g., "₹11.91 - 16.83 Lakh*") into a usable number (e.g., ₹1191000)
+    function parsePrice(priceString) {
+        // Look for any number followed by 'Lakh' or 'L' in the string (case-insensitive)
+        const match = priceString.match(/([\d.]+)\s*(Lakh|L)/i);
+        
+        if (match && match[1]) {
+            // Found a number, convert it to actual INR value (multiply by 100,000)
+            return parseFloat(match[1]) * 100000;
+        }
+        
+        // Return 0 if parsing fails. This will make the estimated price ₹0 
+        // if your price string in data.js is incorrectly formatted, which helps debugging.
+        return 0; 
+    }
+
+    function initializeBookingForm() {
+        // 1. Get car ID from URL parameter (e.g., interface.html?id=elevate)
+        const urlParams = new URLSearchParams(window.location.search);
+        const carId = urlParams.get('id');
+        
+        if (carId && allCars[carId]) {
+            selectedCarKey = carId;
+            const car = allCars[carId];
+            
+            // --- Calculate Prices ---
+            const basePriceNum = parsePrice(car.price);
+            const estimatedTaxes = basePriceNum * TAX_RATE_ESTIMATE;
+            const subTotal = basePriceNum + estimatedTaxes;
+            const balanceDueAmount = subTotal - BOOKING_AMOUNT;
+
+            // --- Update UI ---
+            document.getElementById("selectedCarImage").src = car.image;
+            document.getElementById("selectedCarName").textContent = car.name;
+            document.getElementById("selectedCarPrice").textContent = car.price;
+
+            document.getElementById("estimatedBasePrice").textContent = formatCurrency(basePriceNum);
+            document.getElementById("estimatedTaxes").textContent = formatCurrency(estimatedTaxes);
+            document.getElementById("estimatedTotal").textContent = formatCurrency(subTotal);
+            document.getElementById("balanceDue").textContent = formatCurrency(balanceDueAmount);
+
+        } else {
+            document.getElementById("selectedCarName").textContent = "Car Not Selected. Please go back.";
+            document.getElementById("errorMessage").textContent = "Error: Invalid car selection.";
+            document.getElementById("errorMessage").style.display = 'block';
+            const formElement = document.getElementById("bookingForm");
+            if(formElement) formElement.style.display = 'none';
+            return;
+        }
+
+        // --- Form Submission Handler (POST to Server) ---
+        document.getElementById("bookingForm").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const submitButton = event.submitter;
+            submitButton.disabled = true;
+            const errorMessage = document.getElementById("errorMessage");
+            if(errorMessage) errorMessage.style.display = 'none';
+
+            // 2. Collect form data
+            const customerName = document.getElementById("name").value;
+            const customerPhone = document.getElementById("phone").value;
+            const deliveryDate = document.getElementById("date").value;
+            
+            // Re-calculate prices for submission consistency
+            const car = allCars[selectedCarKey];
+            const basePriceNum = parsePrice(car.price);
+            const estimatedTaxes = basePriceNum * TAX_RATE_ESTIMATE;
+            const subTotal = basePriceNum + estimatedTaxes;
+            const balanceDueAmount = subTotal - BOOKING_AMOUNT;
+
+            // 3. Prepare data for the server
+            const bookingData = {
+                carId: selectedCarKey,
+                name: customerName,
+                phone: customerPhone,
+                deliveryDate: deliveryDate,
+                estimatedBalance: balanceDueAmount, 
+                estimatedBasePrice: basePriceNum,
+                estimatedTaxes: estimatedTaxes
+            };
+
+            try {
+                // 4. Send POST request to the Node/Express backend
+                const response = await fetch('http://localhost:3000/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookingData)
+                });
+
+                if (!response.ok) {
+                    const errorResult = await response.json().catch(() => ({ error: 'Unknown server error.' }));
+                    throw new Error(`Server error: ${errorResult.error || 'Check server console'}`);
+                }
+
+                const result = await response.json(); 
+
+                // 5. Success: Redirect to the receipt page with the backend-generated ID
+                const receiptParams = new URLSearchParams();
+                receiptParams.set("receiptId", result.receiptId);
+                
+                window.location.href = `receipt.html?${receiptParams.toString()}`;
+
+            } catch (error) {
+                // 6. Handle failure
+                submitButton.disabled = false;
+                if(errorMessage) {
+                    errorMessage.textContent = "Booking failed. Ensure the server is running: " + error.message;
+                    errorMessage.style.display = 'block';
+                }
+            }
+          });
+
+    }
+
+    window.onload = initializeBookingForm;
+</script>
+</body>
+</html>
